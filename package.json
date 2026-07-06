@@ -1,0 +1,20 @@
+{
+  "name": "study-tracker",
+  "private": true,
+  "version": "1.0.0",
+  "description": "MERN app to plan, log and analyze student study routines",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n FRONTEND,BACKEND -c cyan,yellow \"npm run dev --workspace frontend\" \"npm run dev --workspace backend\"",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "dev:backend": "npm run dev --workspace backend",
+    "build": "npm run build --workspace frontend",
+    "start": "npm run start --workspace backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
