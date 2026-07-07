@@ -10,8 +10,31 @@ import {
 } from "lucide-react";
 import { useAuth } from "../store/AuthContext";
 import { useStudy } from "../store/StudyContext";
+import { useTimer, formatClock } from "../store/TimerContext";
 import { useReminderScheduler } from "../hooks/useNotifications";
 import Spinner from "./Spinner";
+
+// Visible on every page: shows the live timer while a session runs.
+function RunningTimerBadge() {
+  const { running, elapsedSec, subjectId } = useTimer();
+  const { subjectById } = useStudy();
+  if (!running) return null;
+  const s = subjectById[subjectId];
+  return (
+    <NavLink
+      to="/time-log"
+      className="mb-3 flex items-center gap-2 rounded-lg bg-amber/15 px-3 py-2 text-amber transition-colors hover:bg-amber/25"
+    >
+      <span className="h-2 w-2 animate-pulse rounded-full bg-amber" />
+      <div className="flex-1 leading-tight">
+        <p className="font-mono text-sm font-bold">{formatClock(elapsedSec)}</p>
+        <p className="truncate text-[11px] text-amber/80">
+          {s?.name || "Session"} running
+        </p>
+      </div>
+    </NavLink>
+  );
+}
 
 const nav = [
   { to: "/", label: "Dashboard", icon: Activity, end: true },
@@ -53,9 +76,12 @@ function Sidebar() {
         ))}
       </nav>
 
-      <div className="mt-auto flex items-center gap-2 px-2 text-sm text-amber">
-        <Flame size={16} />
-        <span>{summary.streak.current}-day streak</span>
+      <div className="mt-auto">
+        <RunningTimerBadge />
+        <div className="flex items-center gap-2 px-2 text-sm text-amber">
+          <Flame size={16} />
+          <span>{summary.streak.current}-day streak</span>
+        </div>
       </div>
     </aside>
   );

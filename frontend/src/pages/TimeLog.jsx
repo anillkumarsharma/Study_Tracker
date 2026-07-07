@@ -1,53 +1,56 @@
-import { useEffect, useRef, useState } from "react";
-import { Play, Pause, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Play, Pause, Plus, Trash2, RotateCcw } from "lucide-react";
 import { Page } from "../components/Layout";
 import Modal from "../components/Modal";
 import { useStudy } from "../store/StudyContext";
-
-function pad(n) {
-  return String(n).padStart(2, "0");
-}
+import { useTimer, formatClock } from "../store/TimerContext";
 
 function LiveSession() {
   const { subjects, addSession } = useStudy();
-  const [subjectId, setSubjectId] = useState(subjects[0]?.id ?? "");
-  const [topic, setTopic] = useState("");
-  const [seconds, setSeconds] = useState(0);
-  const [running, setRunning] = useState(false);
-  const timerRef = useRef(null);
+  const {
+    running,
+    subjectId,
+    topic,
+    elapsedSec,
+    start,
+    pause,
+    reset,
+    setSubject,
+    setTopic,
+  } = useTimer();
 
+  // If nothing is selected yet (fresh timer), default to the first subject.
   useEffect(() => {
-    if (running) {
-      timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
-    }
-    return () => clearInterval(timerRef.current);
-  }, [running]);
-
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const sec = seconds % 60;
+    if (!subjectId && subjects.length) setSubject(subjects[0].id);
+  }, [subjectId, subjects, setSubject]);
 
   const save = async () => {
-    if (seconds < 1) return;
+    if (elapsedSec < 1) return;
     await addSession({
-      subjectId,
+      subjectId: subjectId || subjects[0]?.id,
       topic,
-      durationMins: Math.max(1, Math.round(seconds / 60)),
+      durationMins: Math.max(1, Math.round(elapsedSec / 60)),
     });
-    setRunning(false);
-    setSeconds(0);
-    setTopic("");
+    reset();
   };
 
   return (
     <div className="rounded-2xl bg-paper p-6 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-        Live Session
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Live Session
+        </p>
+        {running && (
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-amber">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-amber" />
+            Running
+          </span>
+        )}
+      </div>
 
       <select
         value={subjectId}
-        onChange={(e) => setSubjectId(e.target.value)}
+        onChange={(e) => setSubject(e.target.value)}
         className="mt-4 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-navy outline-none focus:border-amber"
       >
         {subjects.map((s) => (
@@ -66,25 +69,38 @@ function LiveSession() {
       />
 
       <div className="my-6 text-center font-mono text-4xl font-bold tracking-widest text-navy">
-        {pad(h)}:{pad(m)}:{pad(sec)}
+        {formatClock(elapsedSec)}
       </div>
 
       <div className="flex gap-3">
         <button
-          onClick={() => setRunning((r) => !r)}
+          onClick={running ? pause : start}
           className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-amber py-2.5 text-sm font-semibold text-navy transition-colors hover:bg-amber/90"
         >
           {running ? <Pause size={16} /> : <Play size={16} />}
-          {running ? "Pause" : "Start"}
+          {running ? "Pause" : elapsedSec > 0 ? "Resume" : "Start"}
         </button>
         <button
           onClick={save}
-          disabled={seconds < 1}
+          disabled={elapsedSec < 1}
           className="flex-1 rounded-lg bg-navy py-2.5 text-sm font-semibold text-paper transition-colors hover:bg-navy/90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Save log
         </button>
+        {elapsedSec > 0 && (
+          <button
+            onClick={reset}
+            title="Discard"
+            className="grid w-11 place-items-center rounded-lg bg-slate-200 text-slate-500 transition-colors hover:bg-slate-300 hover:text-navy"
+          >
+            <RotateCcw size={16} />
+          </button>
+        )}
       </div>
+
+      <p className="mt-3 text-center text-xs text-slate-400">
+        The timer keeps running even if you switch pages or minimise the app.
+      </p>
     </div>
   );
 }

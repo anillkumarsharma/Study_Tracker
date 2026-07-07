@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 import { AuthProvider } from "./store/AuthContext.jsx";
 import { StudyProvider } from "./store/StudyContext.jsx";
+import { TimerProvider } from "./store/TimerContext.jsx";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -11,7 +12,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <AuthProvider>
         <StudyProvider>
-          <App />
+          <TimerProvider>
+            <App />
+          </TimerProvider>
         </StudyProvider>
       </AuthProvider>
     </BrowserRouter>
