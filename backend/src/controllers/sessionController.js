@@ -9,6 +9,8 @@ const shape = (s) => ({
   duration: formatDuration(s.durationMins),
   note: s.note,
   date: formatDate(s.date),
+  // Raw ISO date so the frontend can group actual hours by weekday/week.
+  dateISO: s.date,
 });
 
 // GET /api/sessions — newest first.

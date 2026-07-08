@@ -5,56 +5,28 @@ import Modal from "../components/Modal";
 import { DAYS } from "../data/dummy";
 import { useStudy } from "../store/StudyContext";
 
-function EditableCell({ color, value, onSave }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value ?? "");
+// Rounds to at most 1 decimal, dropping a trailing ".0" (2 -> "2", 1.5 -> "1.5").
+const prettyHours = (h) => String(Math.round(h * 10) / 10);
 
-  const commit = () => {
-    const num = parseFloat(draft);
-    onSave(Number.isFinite(num) ? num : null);
-    setEditing(false);
-  };
-
-  if (editing) {
-    return (
-      <input
-        autoFocus
-        type="number"
-        step="0.5"
-        min="0"
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") commit();
-          if (e.key === "Escape") setEditing(false);
-        }}
-        className="w-14 rounded-md border border-amber bg-white px-1.5 py-1 text-center text-xs font-semibold text-navy outline-none"
-      />
-    );
-  }
-
+// Read-only cell showing the actual hours studied for this subject on this day.
+// Auto-filled from logged sessions — you "edit" it by logging time, not typing.
+function ActualCell({ color, hours }) {
   return (
-    <button
-      onClick={() => {
-        setDraft(value ?? "");
-        setEditing(true);
-      }}
-      className="min-w-[2.5rem] rounded-md px-2.5 py-1 text-xs font-semibold transition-colors"
+    <span
+      className="inline-block min-w-[2.5rem] rounded-md px-2.5 py-1 text-xs font-semibold"
       style={
-        value
+        hours > 0
           ? { backgroundColor: `${color}1f`, color }
           : { color: "#cbd5e1" }
       }
     >
-      {value ? `${value}h` : "—"}
-    </button>
+      {hours > 0 ? `${prettyHours(hours)}h` : "—"}
+    </span>
   );
 }
 
 export default function Routine() {
-  const { subjects, routine, setRoutineCell, addSubject, deleteSubject } =
-    useStudy();
+  const { subjects, weeklyActuals, addSubject, deleteSubject } = useStudy();
   const [modalOpen, setModalOpen] = useState(false);
   const [name, setName] = useState("");
 
@@ -68,7 +40,7 @@ export default function Routine() {
   return (
     <Page
       title="Your Weekly Routine"
-      subtitle="Set your planned study hours per subject, per day. Click any cell to edit."
+      subtitle="Hours you've actually studied this week, per subject, per day. Fills in automatically as you log time."
     >
       <div className="rounded-2xl bg-paper p-6 shadow-sm">
         <table className="w-full border-collapse">
@@ -97,10 +69,9 @@ export default function Routine() {
                 </td>
                 {DAYS.map((d) => (
                   <td key={d} className="py-4 text-center">
-                    <EditableCell
+                    <ActualCell
                       color={s.color}
-                      value={routine[s.id]?.[d]}
-                      onSave={(hrs) => setRoutineCell(s.id, d, hrs)}
+                      hours={weeklyActuals[s.id]?.[d] || 0}
                     />
                   </td>
                 ))}

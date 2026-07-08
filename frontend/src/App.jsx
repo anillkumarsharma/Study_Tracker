@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
+import DailyQuote from "./components/DailyQuote";
+import ChatWidget from "./components/ChatWidget";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Routine from "./pages/Routine";
@@ -22,17 +24,21 @@ function App() {
   }
 
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/routine" element={<Routine />} />
-        <Route path="/time-log" element={<TimeLog />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/goals" element={<Goals />} />
-        <Route path="/reminders" element={<Reminders />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <DailyQuote />
+      <ChatWidget />
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/routine" element={<Routine />} />
+          <Route path="/time-log" element={<TimeLog />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/goals" element={<Goals />} />
+          <Route path="/reminders" element={<Reminders />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
 

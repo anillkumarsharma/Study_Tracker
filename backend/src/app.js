@@ -9,6 +9,7 @@ import sessionRoutes from "./routes/sessionRoutes.js";
 import reminderRoutes from "./routes/reminderRoutes.js";
 import examRoutes from "./routes/examRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use("/api/sessions", sessionRoutes);
 app.use("/api/reminders", reminderRoutes);
 app.use("/api/exams", examRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/chat", chatRoutes);
 
 // 404 handler
 app.use((req, res) => {

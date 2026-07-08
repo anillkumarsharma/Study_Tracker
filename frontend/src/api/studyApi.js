@@ -44,3 +44,7 @@ export const examsApi = {
 export const analyticsApi = {
   summary: () => client.get("/analytics/summary").then(data),
 };
+
+export const chatApi = {
+  send: (messages) => client.post("/chat", { messages }).then(data),
+};

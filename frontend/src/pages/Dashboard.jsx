@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { CalendarClock } from "lucide-react";
 import { Page } from "../components/Layout";
+import LiveCountdown from "../components/LiveCountdown";
 import { DAYS } from "../data/dummy";
 import { useStudy } from "../store/StudyContext";
 import { useAuth } from "../store/AuthContext";
@@ -182,6 +183,9 @@ export default function Dashboard() {
                     <p className="font-semibold text-navy">{ex.name}</p>
                     <p className="text-xs font-medium" style={{ color }}>
                       {countdownLabel(ex.date)}
+                    </p>
+                    <p className="mt-0.5">
+                      <LiveCountdown date={ex.date} color={color} />
                     </p>
                   </div>
                 </div>

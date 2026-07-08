@@ -2,9 +2,15 @@ import { useState } from "react";
 import { Plus, Trash2, Target, CalendarClock } from "lucide-react";
 import { Page } from "../components/Layout";
 import Modal from "../components/Modal";
+import LiveCountdown from "../components/LiveCountdown";
 import { useStudy } from "../store/StudyContext";
 import { useAuth } from "../store/AuthContext";
-import { countdownLabel, formatExamDate, daysUntil } from "../utils/dates";
+import {
+  countdownLabel,
+  formatExamDate,
+  daysUntil,
+  todayISO,
+} from "../utils/dates";
 
 function WeeklyGoalCard() {
   const { user, updateGoal } = useAuth();
@@ -58,10 +64,12 @@ function WeeklyGoalCard() {
 function ExamModal({ open, onClose }) {
   const { subjects, addExam } = useStudy();
   const [form, setForm] = useState({ name: "", subjectId: "", date: "" });
+  const today = todayISO();
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!form.name.trim() || !form.date) return;
+    // Guard against past dates (typed in, or older browsers ignoring `min`).
+    if (!form.name.trim() || !form.date || form.date < today) return;
     await addExam({
       name: form.name,
       subjectId: form.subjectId || null,
@@ -98,6 +106,7 @@ function ExamModal({ open, onClose }) {
         </select>
         <input
           type="date"
+          min={today}
           className={field}
           value={form.date}
           onChange={(e) => setForm({ ...form, date: e.target.value })}
@@ -155,6 +164,11 @@ function ExamsCard() {
                   {s ? `${s.name} · ` : ""}
                   {formatExamDate(ex.date)}
                 </p>
+                {days >= 0 && (
+                  <p className="mt-1">
+                    <LiveCountdown date={ex.date} color={color} />
+                  </p>
+                )}
               </div>
               <span
                 className="rounded-full px-3 py-1 text-xs font-semibold"

@@ -24,6 +24,15 @@ export const createExam = async (req, res, next) => {
     if (!name || !date) {
       return res.status(400).json({ message: "name and date are required" });
     }
+
+    // Reject exam dates in the past (compare on the day, ignore time of day).
+    const examDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (isNaN(examDate) || examDate < today) {
+      return res.status(400).json({ message: "Exam date cannot be in the past" });
+    }
+
     const exam = await Exam.create({
       user: req.user._id,
       name: name.trim(),

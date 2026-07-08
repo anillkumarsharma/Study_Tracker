@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { useAuth } from "./AuthContext";
+import { startOfWeek, weekdayLabel } from "../utils/dates";
 import {
   subjectsApi,
   routineApi,
@@ -39,6 +40,25 @@ export function StudyProvider({ children }) {
     () => Object.fromEntries(subjects.map((s) => [s.id, s])),
     [subjects]
   );
+
+  // Actual hours studied THIS week, grouped as { subjectId: { Mon: 2, ... } }.
+  // Auto-derived from logged sessions, so the routine grid fills itself as you
+  // save time-log sessions. Resets naturally when a new week starts.
+  const weeklyActuals = useMemo(() => {
+    const weekStart = startOfWeek();
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 7);
+
+    const grid = {};
+    for (const sess of sessions) {
+      const when = new Date(sess.dateISO);
+      if (when < weekStart || when >= weekEnd) continue;
+      const day = weekdayLabel(when);
+      const cell = (grid[sess.subjectId] ||= {});
+      cell[day] = (cell[day] || 0) + sess.durationMins / 60;
+    }
+    return grid;
+  }, [sessions]);
 
   const refreshSummary = useCallback(async () => {
     try {
@@ -159,6 +179,7 @@ export function StudyProvider({ children }) {
     subjects,
     subjectById,
     routine,
+    weeklyActuals,
     sessions,
     reminders,
     exams,
