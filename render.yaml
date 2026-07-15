@@ -1,0 +1,29 @@
+# Render Blueprint for the StudyLog backend (Express + MongoDB).
+# In Render: New + → Blueprint → connect this repo. Render reads this file,
+# creates the web service, then asks you to fill the `sync: false` secrets.
+services:
+  - type: web
+    name: studylog-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # JWT signing key — Render generates a strong random value for you.
+      - key: JWT_SECRET
+        generateValue: true
+      # MongoDB Atlas connection string — paste in the Render dashboard.
+      - key: MONGO_URI
+        sync: false
+      # Your Vercel frontend URL, e.g. https://study-tracker.vercel.app
+      # (Leave blank to allow all origins — API is JWT-protected either way.)
+      - key: CLIENT_URL
+        sync: false
+      # Optional: Google Gemini key for the StudyBuddy AI chat.
+      - key: GEMINI_API_KEY
+        sync: false
