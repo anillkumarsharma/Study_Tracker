@@ -1,6 +1,7 @@
 import Subject from "../models/Subject.js";
 import Exam from "../models/Exam.js";
 import Session from "../models/Session.js";
+import ChatMessage from "../models/ChatMessage.js";
 import { formatDuration } from "../utils/format.js";
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
@@ -128,7 +129,47 @@ ${context}
       data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
       "Sorry, main abhi jawab nahi de paaya. Dobara try karo.";
 
+    // Persist the latest user turn and the assistant's reply so the
+    // conversation survives refresh / re-login.
+    const lastUser = [...messages].reverse().find((m) => m.role === "user");
+    const toSave = [];
+    if (lastUser?.content) {
+      toSave.push({
+        user: req.user._id,
+        role: "user",
+        content: String(lastUser.content).slice(0, 4000),
+      });
+    }
+    toSave.push({ user: req.user._id, role: "assistant", content: reply });
+    // Don't fail the request if persistence hiccups — the user still gets a reply.
+    ChatMessage.insertMany(toSave).catch((e) =>
+      console.error("Failed to save chat:", e.message)
+    );
+
     res.json({ reply });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET /api/chat/history — full saved conversation, oldest first.
+export const getHistory = async (req, res, next) => {
+  try {
+    const history = await ChatMessage.find({ user: req.user._id })
+      .sort({ createdAt: 1 })
+      .select("role content createdAt")
+      .lean();
+    res.json({ history });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// DELETE /api/chat/history — wipe this user's saved conversation.
+export const clearHistory = async (req, res, next) => {
+  try {
+    await ChatMessage.deleteMany({ user: req.user._id });
+    res.json({ message: "Chat history clear ho gayi." });
   } catch (err) {
     next(err);
   }

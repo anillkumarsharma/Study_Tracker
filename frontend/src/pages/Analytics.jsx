@@ -25,7 +25,7 @@ function Card({ title, children }) {
 
 export default function Analytics() {
   const { summary } = useStudy();
-  const { weeklyStats, subjectDistribution, streak } = summary;
+  const { weeklyStats, subjectDistribution, streak, weeklyGoal } = summary;
 
   const pieData = subjectDistribution.filter((d) => d.hours > 0);
 
@@ -133,7 +133,7 @@ export default function Analytics() {
                 {streak.current}-day streak
               </p>
               <p className="text-sm text-slate-500">
-                Total hours logged: {streak.totalHours}h
+                This week: {weeklyGoal.done}h
               </p>
             </div>
           </div>

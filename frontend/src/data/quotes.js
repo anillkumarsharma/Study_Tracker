@@ -17,3 +17,11 @@ export const QUOTES = [
   "Discipline motivation se zyada tikti hai, {name}. Mann kare ya na kare — baith jao.",
   "{name}, ek page se shuru karo. Baaki khud-ba-khud ho jayega. Believe karo. 💪",
 ];
+
+// One-off messages tied to a specific date (local "YYYY-MM-DD"). If today's date
+// has an entry here, it is shown instead of the random quote — but only that day.
+// {name} is replaced with the logged-in user's name.
+export const SPECIAL = {
+  "2026-07-17":
+    "Hii {name}, good morning! ☀️ Anil bhaiya ne woh saare issue solve kar diye hain jo tumne kal unse discuss kiye the. Aur agar abhi bhi koi confusion ho toh bike riding ke time pooch lena unse 😊",
+};

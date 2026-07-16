@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { Sparkles, X } from "lucide-react";
 import { useAuth } from "../store/AuthContext";
 import { todayISO } from "../utils/dates";
-import { QUOTES } from "../data/quotes";
+import { QUOTES, SPECIAL } from "../data/quotes";
 
-const SHOWN_KEY = "studylog_quote_shown"; // stores the last date we showed it
+const SHOWN_KEY = "studylog_quote_shown"; // last date we showed the daily quote
+const SPECIAL_KEY = "studylog_special_shown"; // last date we showed a special note
 
 // Time-of-day greeting so the popup feels alive.
 function greeting() {
@@ -25,17 +26,29 @@ export default function DailyQuote() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [quote, setQuote] = useState("");
+  const [isSpecial, setIsSpecial] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    if (localStorage.getItem(SHOWN_KEY) !== todayISO()) {
+    const today = todayISO();
+    const special = SPECIAL[today];
+    // A special note for today wins — and shows even if the daily quote was
+    // already dismissed earlier today (tracked separately).
+    if (special && localStorage.getItem(SPECIAL_KEY) !== today) {
+      setQuote(special);
+      setIsSpecial(true);
+      setOpen(true);
+    } else if (localStorage.getItem(SHOWN_KEY) !== today) {
       setQuote(pickQuote()); // choose once when the popup opens
+      setIsSpecial(false);
       setOpen(true);
     }
   }, [user]);
 
   const dismiss = () => {
-    localStorage.setItem(SHOWN_KEY, todayISO());
+    const today = todayISO();
+    localStorage.setItem(SHOWN_KEY, today);
+    if (isSpecial) localStorage.setItem(SPECIAL_KEY, today);
     setOpen(false);
   };
 

@@ -1,7 +1,7 @@
 import Subject from "../models/Subject.js";
 import Session from "../models/Session.js";
 import Routine from "../models/Routine.js";
-import { DAYS, weekdayLabel, round1 } from "../utils/format.js";
+import { DAYS, weekdayLabel, startOfWeek, round1 } from "../utils/format.js";
 
 // GET /api/analytics/summary
 // Everything the Dashboard + Analytics pages need, computed from real data.
@@ -31,12 +31,16 @@ export const getSummary = async (req, res, next) => {
     const planned = Object.fromEntries(DAYS.map((d) => [d, 0]));
     for (const r of routines) planned[r.day] += r.hours;
 
-    // --- Actual per weekday for the last 7 days ---
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
+    // --- Actual per weekday for THIS calendar week (Mon 00:00 -> next Mon) ---
+    // Same window the Routine grid uses, so the two never disagree and a
+    // weekday can't be counted twice (e.g. last Friday + this Friday).
+    const weekStart = startOfWeek();
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 7);
     const actual = Object.fromEntries(DAYS.map((d) => [d, 0]));
     for (const s of sessions) {
-      if (new Date(s.date) >= weekAgo) {
+      const when = new Date(s.date);
+      if (when >= weekStart && when < weekEnd) {
         actual[weekdayLabel(s.date)] += s.durationMins / 60;
       }
     }
@@ -58,12 +62,18 @@ export const getSummary = async (req, res, next) => {
     const done = round1(Object.values(actual).reduce((a, b) => a + b, 0));
     const percent = target > 0 ? Math.round((done / target) * 100) : 0;
 
-    // --- Streak: consecutive days (ending today) that have a session ---
+    // --- Streak: consecutive days with a session, up to today ---
     const dayKeys = new Set(
       sessions.map((s) => new Date(s.date).toDateString())
     );
-    let current = 0;
     const cursor = new Date();
+    cursor.setHours(0, 0, 0, 0);
+    // If nothing is logged today yet, the streak isn't broken — the day isn't
+    // over. Start counting from yesterday so it stays alive until midnight.
+    if (!dayKeys.has(cursor.toDateString())) {
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    let current = 0;
     while (dayKeys.has(cursor.toDateString())) {
       current += 1;
       cursor.setDate(cursor.getDate() - 1);

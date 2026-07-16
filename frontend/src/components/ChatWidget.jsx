@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { MessageCircle, X, Send, Bot } from "lucide-react";
+import { MessageCircle, X, Send, Bot, Trash2 } from "lucide-react";
 import { chatApi } from "../api/studyApi";
 import { useAuth } from "../store/AuthContext";
+
+const greeting = (user) => ({
+  role: "assistant",
+  content: `Namaste ${
+    user?.firstName || ""
+  }! 👋 Main StudyBuddy hoon. Apne routine, subjects ya exams ke baare me kuch bhi poochho — main aapki study planning me madad karunga.`,
+});
 
 export default function ChatWidget() {
   const { user } = useAuth();
@@ -9,21 +16,38 @@ export default function ChatWidget() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [loaded, setLoaded] = useState(false);
   const scrollRef = useRef(null);
 
-  // Greet the user the first time the panel opens.
+  // Load saved conversation from the DB the first time the panel opens.
   useEffect(() => {
-    if (open && messages.length === 0) {
-      setMessages([
-        {
-          role: "assistant",
-          content: `Namaste ${
-            user?.firstName || ""
-          }! 👋 Main StudyBuddy hoon. Apne routine, subjects ya exams ke baare me kuch bhi poochho — main aapki study planning me madad karunga.`,
-        },
-      ]);
-    }
-  }, [open, messages.length, user]);
+    if (!open || loaded) return;
+    let active = true;
+    (async () => {
+      try {
+        const { history } = await chatApi.history();
+        if (!active) return;
+        const saved = (history || []).map((m) => ({
+          role: m.role,
+          content: m.content,
+        }));
+        setMessages(saved.length ? saved : [greeting(user)]);
+      } catch {
+        if (active) setMessages([greeting(user)]);
+      } finally {
+        if (active) setLoaded(true);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [open, loaded, user]);
+
+  // Clears the chat from the user's view only. The saved conversation stays in
+  // the DB, so it reappears after a refresh / re-login.
+  const clearChat = () => {
+    setMessages([greeting(user)]);
+  };
 
   // Keep the newest message in view.
   useEffect(() => {
@@ -82,6 +106,14 @@ export default function ChatWidget() {
               <p className="text-sm font-semibold">StudyBuddy AI</p>
               <p className="text-[11px] text-paper/70">Aapka study coach</p>
             </div>
+            <button
+              onClick={clearChat}
+              aria-label="Chat screen se hataayein"
+              title="Chat clear karein (history DB me safe rahegi)"
+              className="ml-auto grid h-8 w-8 place-items-center rounded-full text-paper/70 transition-colors hover:bg-white/10 hover:text-paper"
+            >
+              <Trash2 size={16} />
+            </button>
           </div>
 
           {/* Messages */}

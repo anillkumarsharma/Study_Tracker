@@ -9,7 +9,7 @@ import TimeLog from "./pages/TimeLog";
 import Analytics from "./pages/Analytics";
 import Reminders from "./pages/Reminders";
 import Goals from "./pages/Goals";
-import GovtJobs from "./pages/GovtJobs";
+import Weeks from "./pages/Weeks";
 import { useAuth } from "./store/AuthContext";
 
 function App() {
@@ -34,8 +34,8 @@ function App() {
           <Route path="/routine" element={<Routine />} />
           <Route path="/time-log" element={<TimeLog />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/weeks" element={<Weeks />} />
           <Route path="/goals" element={<Goals />} />
-          <Route path="/govt-jobs" element={<GovtJobs />} />
           <Route path="/reminders" element={<Reminders />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

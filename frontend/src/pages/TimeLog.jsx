@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Play, Pause, Plus, Trash2, RotateCcw } from "lucide-react";
 import { Page } from "../components/Layout";
 import Modal from "../components/Modal";
@@ -186,9 +186,62 @@ function ManualModal({ open, onClose }) {
   );
 }
 
+// True if an ISO timestamp falls on the local "today".
+function isToday(iso) {
+  if (!iso) return false;
+  const d = new Date(iso);
+  const now = new Date();
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  );
+}
+
+// Fallback height (px) when there are no sessions from today — keeps the list
+// from growing endlessly while still allowing scroll.
+const FALLBACK_MAX_H = 384;
+
 function RecentSessions() {
   const { sessions, subjectById, deleteSession } = useStudy();
   const [manualOpen, setManualOpen] = useState(false);
+
+  const listRef = useRef(null);
+  const boundaryRef = useRef(null);
+  const [maxH, setMaxH] = useState(null);
+
+  // Sessions are newest-first, so today's logs sit at the top. The first
+  // session that is NOT from today marks where the visible area should end —
+  // everything below it is reachable by scrolling.
+  const firstOlderIndex = sessions.findIndex((sess) => !isToday(sess.dateISO));
+
+  // Measure the boundary and cap the list height to exactly today's logs.
+  useLayoutEffect(() => {
+    const measure = () => {
+      const container = listRef.current;
+      if (!container) return;
+      // -1 → every session is from today: show all, no cap.
+      if (firstOlderIndex === -1) {
+        setMaxH(null);
+        return;
+      }
+      // 0 → nothing from today: fall back to a fixed, scrollable height.
+      if (firstOlderIndex === 0) {
+        setMaxH(FALLBACK_MAX_H);
+        return;
+      }
+      const boundary = boundaryRef.current;
+      if (!boundary) return;
+      // offsetTop is relative to the positioned container and, unlike
+      // getBoundingClientRect, is unaffected by any scroll/clip already applied.
+      const top = boundary.offsetTop;
+      setMaxH(top > 0 ? top : FALLBACK_MAX_H);
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [sessions, subjectById, firstOlderIndex]);
 
   return (
     <div className="rounded-2xl bg-paper p-6 shadow-sm">
@@ -205,18 +258,23 @@ function RecentSessions() {
         </button>
       </div>
 
-      <div className="mt-4 flex flex-col divide-y divide-slate-200/70">
+      <div
+        ref={listRef}
+        className="relative mt-4 flex flex-col divide-y divide-slate-200/70 overflow-y-auto pr-1"
+        style={maxH ? { maxHeight: maxH } : undefined}
+      >
         {sessions.length === 0 && (
           <p className="py-8 text-center text-sm text-slate-400">
             No sessions yet. Start the timer or add one manually.
           </p>
         )}
-        {sessions.map((sess) => {
+        {sessions.map((sess, i) => {
           const s = subjectById[sess.subjectId];
           if (!s) return null;
           return (
             <div
               key={sess.id}
+              ref={i === firstOlderIndex ? boundaryRef : undefined}
               className="group flex gap-3 py-4 first:pt-0 last:pb-0"
             >
               <span

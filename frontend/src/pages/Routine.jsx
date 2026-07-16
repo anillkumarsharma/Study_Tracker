@@ -2,25 +2,24 @@ import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Page } from "../components/Layout";
 import Modal from "../components/Modal";
-import { DAYS } from "../data/dummy";
+import { DAYS } from "../utils/dates";
+import { formatDuration } from "../utils/format";
 import { useStudy } from "../store/StudyContext";
 
-// Rounds to at most 1 decimal, dropping a trailing ".0" (2 -> "2", 1.5 -> "1.5").
-const prettyHours = (h) => String(Math.round(h * 10) / 10);
-
-// Read-only cell showing the actual hours studied for this subject on this day.
+// Read-only cell showing the actual time studied for this subject on this day.
 // Auto-filled from logged sessions — you "edit" it by logging time, not typing.
 function ActualCell({ color, hours }) {
+  const mins = Math.round(hours * 60);
   return (
     <span
       className="inline-block min-w-[2.5rem] rounded-md px-2.5 py-1 text-xs font-semibold"
       style={
-        hours > 0
+        mins > 0
           ? { backgroundColor: `${color}1f`, color }
           : { color: "#cbd5e1" }
       }
     >
-      {hours > 0 ? `${prettyHours(hours)}h` : "—"}
+      {mins > 0 ? formatDuration(mins) : "—"}
     </span>
   );
 }

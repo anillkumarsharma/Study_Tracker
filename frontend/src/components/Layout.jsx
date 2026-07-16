@@ -7,7 +7,7 @@ import {
   Bell,
   Target,
   Flame,
-  Briefcase,
+  CalendarRange,
 } from "lucide-react";
 import { useAuth } from "../store/AuthContext";
 import { useStudy } from "../store/StudyContext";
@@ -42,8 +42,8 @@ const nav = [
   { to: "/routine", label: "Routine", icon: CalendarDays },
   { to: "/time-log", label: "Time Log", icon: Clock },
   { to: "/analytics", label: "Analytics", icon: BookOpen },
+  { to: "/weeks", label: "Weekly Report", icon: CalendarRange },
   { to: "/goals", label: "Goals", icon: Target },
-  { to: "/govt-jobs", label: "Govt Jobs", icon: Briefcase },
   { to: "/reminders", label: "Reminders", icon: Bell },
 ];
 

@@ -47,4 +47,6 @@ export const analyticsApi = {
 
 export const chatApi = {
   send: (messages) => client.post("/chat", { messages }).then(data),
+  history: () => client.get("/chat/history").then(data),
+  clear: () => client.delete("/chat/history").then(data),
 };

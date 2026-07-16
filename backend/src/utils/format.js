@@ -8,6 +8,15 @@ const MONTHS = [
 // JS getDay(): 0 = Sunday. Convert to our Mon-first label.
 export const weekdayLabel = (date) => DAYS[(new Date(date).getDay() + 6) % 7];
 
+// Monday 00:00 of the week that contains `date` (defaults to now).
+export const startOfWeek = (date = new Date()) => {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const back = (d.getDay() + 6) % 7; // days back to Monday
+  d.setDate(d.getDate() - back);
+  return d;
+};
+
 // 80 -> "1h 20m", 45 -> "45m"
 export const formatDuration = (mins) => {
   const total = Math.max(1, Math.round(mins));

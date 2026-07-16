@@ -5,6 +5,12 @@ const MONTHS = [
 
 export const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+// Date -> "8 Jul" (short day + month, no year).
+export const formatDayMonth = (date) => {
+  const d = new Date(date);
+  return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+};
+
 // Today as a local "YYYY-MM-DD" string, for <input type="date" min=...>.
 export function todayISO() {
   const d = new Date();

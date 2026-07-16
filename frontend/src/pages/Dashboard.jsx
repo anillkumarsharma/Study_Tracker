@@ -10,10 +10,9 @@ import {
 import { CalendarClock } from "lucide-react";
 import { Page } from "../components/Layout";
 import LiveCountdown from "../components/LiveCountdown";
-import { DAYS } from "../data/dummy";
 import { useStudy } from "../store/StudyContext";
 import { useAuth } from "../store/AuthContext";
-import { countdownLabel, daysUntil } from "../utils/dates";
+import { countdownLabel, daysUntil, DAYS } from "../utils/dates";
 
 function GoalRing({ percent }) {
   const data = [{ value: percent }, { value: Math.max(0, 100 - percent) }];
